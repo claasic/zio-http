@@ -4,6 +4,7 @@ import io.netty.buffer.{ByteBuf, ByteBufUtil, Unpooled}
 import io.netty.channel.{Channel, DefaultFileRegion}
 import io.netty.handler.codec.http.LastHttpContent
 import io.netty.util.AsciiString
+import zhttp.http.sse.ServerSentEvent
 import zhttp.service.Ctx
 import zio._
 import zio.stream.ZStream
@@ -150,34 +151,11 @@ object Body {
     }
   }
 
-  sealed trait ServerSentEvent {
-    def toStringRepresentation: String
-  }
-
-  object ServerSentEvent {
-
-    private val eol = "\n"
-
-    case class Event(dataF: Option[String], eventF: Option[String], idF: Option[String], retryF: Option[Int]) extends ServerSentEvent {
-      override def toStringRepresentation: String = {
-        val _data  = dataF.map(_.split(eol).map(line => s"data: $line").mkString(eol))
-        val _event = eventF.map(str => s"event: $str")
-        val _id    = idF.map(str => s"id: $str")
-        val _retry = retryF.map(str => s"id: $str")
-
-        Array[Option[String]](_data, _event, _id, _retry).flatten.mkString("", eol, eol.concat(eol))
-      }
-    }
-  }
-
   /**
    * Helper to create Body from Stream of string
    */
   def fromStream(stream: ZStream[Any, Throwable, CharSequence], charset: Charset = HTTP_CHARSET): Body =
     fromStream(stream.map(seq => Chunk.fromArray(seq.toString.getBytes(charset))).flattenChunks)
-
-  def fromEventStream(stream: ZStream[Any, Throwable, ServerSentEvent]): Body =
-    fromStream(stream.map(seq => Chunk.fromArray(seq.toStringRepresentation.getBytes(HTTP_CHARSET))).flattenChunks)
 
   /**
    * Helper to create Body from Stream of bytes

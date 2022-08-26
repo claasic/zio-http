@@ -4,12 +4,13 @@ import zhttp.http._
 import zhttp.service.Server
 import zio._
 import zio.stream.ZStream
-import zhttp.http.Body.ServerSentEvent._
+import zhttp.http.sse.ServerSentEvent._
+import zhttp.http.sse._
 
 /**
  * Example to encode content using a ZStream
  */
-object ServerSentEventResponse extends ZIOAppDefault {
+object ServerSentEventEndpoint extends ZIOAppDefault {
   // Starting the server (for more advanced startup configuration checkout `HelloWorldAdvanced`)
   def run = Server.start(8090, app)
 
@@ -24,10 +25,10 @@ object ServerSentEventResponse extends ZIOAppDefault {
 
     // ZStream powered response
     case Method.GET -> !! / "stream" =>
-      Response(
-        status  = Status.Ok,
-        headers = Headers.contentType(s"text/event-stream; charset=utf-8") ++ Headers.cacheControl("no-cache") ++ Headers.connection("keep-alive") ++ Headers.accessControlAllowOrigin("*"),
-        body    = Body.fromEventStream(stream), // Encoding content using a ZStream
+      ServerSentEventResponse.fromEventStream(
+        status = Status.Ok,
+        headers = Headers.accessControlAllowOrigin("*"),
+        stream
       )
   }
 }
