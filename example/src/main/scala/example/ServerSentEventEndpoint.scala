@@ -1,11 +1,11 @@
 package example
 
 import zhttp.http._
+import zhttp.http.sse.ServerSentEvent._
+import zhttp.http.sse._
 import zhttp.service.Server
 import zio._
 import zio.stream.ZStream
-import zhttp.http.sse.ServerSentEvent._
-import zhttp.http.sse._
 
 /**
  * Example to encode content using a ZStream

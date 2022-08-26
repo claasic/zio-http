@@ -4,14 +4,12 @@ import io.netty.buffer.{ByteBuf, ByteBufUtil, Unpooled}
 import io.netty.channel.{Channel, DefaultFileRegion}
 import io.netty.handler.codec.http.LastHttpContent
 import io.netty.util.AsciiString
-import zhttp.http.sse.ServerSentEvent
 import zhttp.service.Ctx
 import zio._
 import zio.stream.ZStream
 
 import java.io.FileInputStream
 import java.nio.charset.Charset
-import scala.collection.mutable
 
 /**
  * Holds Body that needs to be written on the HttpChannel
