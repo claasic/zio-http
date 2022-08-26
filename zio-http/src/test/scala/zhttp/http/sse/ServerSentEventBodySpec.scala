@@ -22,7 +22,7 @@ object ServerSentEventBodySpec extends ZIOSpecDefault {
           """data: myData
             |
             |""".stripMargin
-        val expectedBytes  = expectedString.getBytes(HTTP_CHARSET).toList
+        val expectedBytes = expectedString.getBytes(HTTP_CHARSET).toList
         ServerSentEventBody.serializeEventStream(eventStream).runCollect.map { byteChunk =>
           assertTrue(byteChunk.toList == expectedBytes)
         }
