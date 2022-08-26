@@ -1,7 +1,6 @@
 package example
 
 import zhttp.http._
-import zhttp.http.sse.ServerSentEvent._
 import zhttp.http.sse._
 import zhttp.service.Server
 import zio._
@@ -15,7 +14,7 @@ object ServerSentEventEndpoint extends ZIOAppDefault {
   def run = Server.start(8090, app)
 
   // Create a stream of Server-Sent-Events
-  def stream = ZStream.repeat(Event(Some("my-data"), Some("message"), Some("my-id"), None)).schedule(Schedule.spaced(1.seconds) && Schedule.recurs(10))
+  val eventStream = ZStream.repeatWithSchedule(ServerSentEvent.withData("myData"), Schedule.spaced(1.seconds) && Schedule.recurs(10))
 
   // Use `Http.collect` to match on route
   def app: HttpApp[Any, Nothing] = Http.collect[Request] {
@@ -25,10 +24,10 @@ object ServerSentEventEndpoint extends ZIOAppDefault {
 
     // ZStream powered response
     case Method.GET -> !! / "stream" =>
-      ServerSentEventResponse.fromEventStream(
+      ServerSentEventResponse.fromEventStreamWithHeartbeat(
         status = Status.Ok,
-        headers = Headers.accessControlAllowOrigin("*"),
-        stream
+        additionalHeaders = Headers.accessControlAllowOrigin("*"),
+        stream = eventStream
       )
   }
 }
