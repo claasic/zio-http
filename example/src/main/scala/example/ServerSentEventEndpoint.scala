@@ -7,14 +7,15 @@ import zio._
 import zio.stream.ZStream
 
 /**
- * Example to encode content using a ZStream
+ * Example to provide content as Server-Sent Events.
  */
 object ServerSentEventEndpoint extends ZIOAppDefault {
-  // Starting the server (for more advanced startup configuration checkout `HelloWorldAdvanced`)
-  def run = Server.start(8090, app)
 
   // Create a stream of Server-Sent-Events
   val eventStream = ZStream.repeatWithSchedule(ServerSentEvent.withData("myData"), Schedule.spaced(1.seconds) && Schedule.recurs(10))
+
+  // Starting the server (for more advanced startup configuration checkout `HelloWorldAdvanced`)
+  def run = Server.start(8090, app)
 
   // Use `Http.collect` to match on route
   def app: HttpApp[Any, Nothing] = Http.collect[Request] {

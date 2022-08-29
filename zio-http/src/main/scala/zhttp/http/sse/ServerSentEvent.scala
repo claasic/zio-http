@@ -6,15 +6,23 @@ sealed trait ServerSentEvent {
 
 object ServerSentEvent {
 
-  private[sse] val LF = "\n"
+  val empty: ServerSentEvent =
+    EventHeartbeat
 
-  val empty: ServerSentEvent = EventHeartbeat
+  private[sse] val LF =
+    "\n"
 
   def withData(data: String, eventF: Option[String] = None, idF: Option[String] = None, retryF: Option[Int] = None): Event =
     Event(Some(data), eventF, idF, retryF)
 
-  // Odd pattern was chosen due to leaking private constructors, see https://users.scala-lang.org/t/ending-the-confusion-of-private-case-class-constructor-in-scala-2-13-or-2-14/2915/8
-  sealed abstract case class Event private(dataF: Option[String], eventF: Option[String], idF: Option[String], retryF: Option[Int]) extends ServerSentEvent {
+  // Odd pattern was chosen due to leaking private constructors.
+  // See: https://users.scala-lang.org/t/ending-the-confusion-of-private-case-class-constructor-in-scala-2-13-or-2-14/2915/8
+  private[sse] sealed abstract case class Event private(
+                                                         dataF: Option[String],
+                                                         eventF: Option[String],
+                                                         idF: Option[String],
+                                                         retryF: Option[Int]
+                                                       ) extends ServerSentEvent {
 
     /**
      * @return A String representation of the SSE, structured for serialization and transport.
@@ -38,7 +46,7 @@ object ServerSentEvent {
   /**
    * As per specification an `end-of-line` is a complete event which in turn can be used as a heartbeat.
    */
-  private case object EventHeartbeat extends ServerSentEvent {
+  private[sse] case object EventHeartbeat extends ServerSentEvent {
     override def toStringRepresentation: String = LF
   }
 
