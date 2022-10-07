@@ -1,4 +1,4 @@
-package zhttp.http.sse
+package zio.http.sse
 
 sealed trait ServerSentEvent {
   def toStringRepresentation: String
@@ -6,36 +6,67 @@ sealed trait ServerSentEvent {
 
 object ServerSentEvent {
 
-  val empty: ServerSentEvent =
+  private object Fields {
+    val Field      = """([^:]+):? ?(.*)""".r
+    val DataField  = "data"
+    val IdField    = "id"
+    val EventField = "event"
+    val RetryField = "retry"
+  }
+
+  def parse(eventLines: List[String]): ServerSentEvent = {
+    import Fields._
+
+    val result = eventLines.foldLeft(Event(None, None, None, None)) { (sse, line) =>
+      line match {
+        case Field(Fields.DataField, data)   =>
+          sse.copy(dataF = sse.dataF.map(s => s.concat(LF ++ data)).orElse(Some(data)))
+        case Field(Fields.IdField, id)       => sse.copy(idF = Some(id))
+        case Field(Fields.EventField, event) => sse.copy(eventF = Some(event))
+        case Field(Fields.RetryField, retry) => sse.copy(retryF = retry.toIntOption)
+        case _                               => sse
+      }
+    }
+    if (result.isEmpty) ServerSentEvent.empty else result
+  }
+
+  val empty: EventHeartbeat.type =
     EventHeartbeat
 
   private[sse] val LF =
     "\n"
 
-  def withData(data: String, eventF: Option[String] = None, idF: Option[String] = None, retryF: Option[Int] = None): Event =
+  def withData(
+    data: String,
+    eventF: Option[String] = None,
+    idF: Option[String] = None,
+    retryF: Option[Int] = None,
+  ): Event =
     Event(Some(data), eventF, idF, retryF)
 
-  // Odd pattern was chosen due to leaking private constructors.
-  // See: https://users.scala-lang.org/t/ending-the-confusion-of-private-case-class-constructor-in-scala-2-13-or-2-14/2915/8
-  private[sse] sealed abstract case class Event private(
-                                                         dataF: Option[String],
-                                                         eventF: Option[String],
-                                                         idF: Option[String],
-                                                         retryF: Option[Int]
-                                                       ) extends ServerSentEvent {
+  private[sse] case class Event private[sse] (
+    dataF: Option[String],
+    eventF: Option[String],
+    idF: Option[String],
+    retryF: Option[Int],
+  ) extends ServerSentEvent {
 
     /**
-     * @return A String representation of the SSE, structured for serialization and transport.
+     * @return
+     *   A String representation of the SSE, structured for serialization and
+     *   transport.
      */
     override def toStringRepresentation: String = {
-      val _data = dataF.map(_.split(LF).map(line => s"data: $line").mkString(LF).concat(LF))
-      val _event = eventF.map(str => s"event: $str".concat(LF))
-      val _id = idF.map(str => s"id: $str".concat(LF))
-      val _retry = retryF.map(str => s"retry: $str".concat(LF))
+      val _data  = dataF.map(_.split(LF).map(line => s"${Fields.DataField}: $line").mkString(LF).concat(LF))
+      val _event = eventF.map(str => s"${Fields.EventField}: $str".concat(LF))
+      val _id    = idF.map(str => s"${Fields.IdField}: $str".concat(LF))
+      val _retry = retryF.map(str => s"${Fields.RetryField}: $str".concat(LF))
 
       // As per specification each field and every event as a whole are each followed by an `end-of-line` character.
       Array[Option[String]](_data, _event, _id, _retry).flatten.mkString.concat(LF)
     }
+
+    private[sse] val isEmpty = dataF.isEmpty && eventF.isEmpty && idF.isEmpty && retryF.isEmpty
   }
 
   private[sse] object Event {
@@ -44,7 +75,8 @@ object ServerSentEvent {
   }
 
   /**
-   * As per specification an `end-of-line` is a complete event which in turn can be used as a heartbeat.
+   * As per specification an `end-of-line` is a complete event which in turn can
+   * be used as a heartbeat.
    */
   private[sse] case object EventHeartbeat extends ServerSentEvent {
     override def toStringRepresentation: String = LF

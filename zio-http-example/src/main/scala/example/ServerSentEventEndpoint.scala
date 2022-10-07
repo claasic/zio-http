@@ -1,9 +1,9 @@
 package example
 
-import zio.http._
-import zio.http.sse._
-import zio.http.model._
 import zio._
+import zio.http._
+import zio.http.model._
+import zio.http.sse._
 import zio.stream.ZStream
 
 /**
@@ -12,7 +12,8 @@ import zio.stream.ZStream
 object ServerSentEventEndpoint extends ZIOAppDefault {
 
   // Create a stream of Server-Sent-Events
-  val eventStream = ZStream.repeatWithSchedule(ServerSentEvent.withData("myData"), Schedule.spaced(1.seconds) && Schedule.recurs(10))
+  val eventStream =
+    ZStream.repeatWithSchedule(ServerSentEvent.withData("myData"), Schedule.spaced(1.seconds) && Schedule.recurs(10))
 
   // Starting the server (for more advanced startup configuration checkout `HelloWorldAdvanced`)
   def run = Server.serve(app).provide(Server.default)
@@ -28,7 +29,7 @@ object ServerSentEventEndpoint extends ZIOAppDefault {
       ServerSentEventResponse.fromEventStreamWithHeartbeat(
         status = Status.Ok,
         additionalHeaders = Headers.accessControlAllowOrigin("*"),
-        stream = eventStream
+        stream = eventStream,
       )
   }
 }
