@@ -1,6 +1,7 @@
-package zhttp.http.sse
+package zio.http.sse
 
-import zhttp.http.{Body, HTTP_CHARSET}
+import zio.http.model.HTTP_CHARSET
+import zio.http.Body
 import zio.Chunk
 import zio.stream.ZStream
 

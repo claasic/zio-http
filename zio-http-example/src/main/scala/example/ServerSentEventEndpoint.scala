@@ -1,8 +1,8 @@
 package example
 
-import zhttp.http._
-import zhttp.http.sse._
-import zhttp.service.Server
+import zio.http._
+import zio.http.sse._
+import zio.http.model._
 import zio._
 import zio.stream.ZStream
 
@@ -15,7 +15,7 @@ object ServerSentEventEndpoint extends ZIOAppDefault {
   val eventStream = ZStream.repeatWithSchedule(ServerSentEvent.withData("myData"), Schedule.spaced(1.seconds) && Schedule.recurs(10))
 
   // Starting the server (for more advanced startup configuration checkout `HelloWorldAdvanced`)
-  def run = Server.start(8090, app)
+  def run = Server.serve(app).provide(Server.default)
 
   // Use `Http.collect` to match on route
   def app: HttpApp[Any, Nothing] = Http.collect[Request] {

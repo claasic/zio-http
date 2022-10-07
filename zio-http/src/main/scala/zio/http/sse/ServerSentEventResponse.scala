@@ -1,7 +1,8 @@
-package zhttp.http.sse
+package zio.http.sse
 
-import zhttp.http.Response.Attribute
-import zhttp.http.{Body, Headers, Response, Status}
+import zio.http.Body
+import zio.http.model._
+import zio.http.Response
 import zio.stream.ZStream
 import zio.{Schedule, durationInt}
 
@@ -22,7 +23,7 @@ object ServerSentEventResponse {
                              additionalHeaders: Headers = Headers.empty,
                              body: Body = Body.empty,
                            ): Response =
-    Response(status, requiredHeaders.combine(additionalHeaders), body, Attribute.empty)
+    Response(status, requiredHeaders.combine(additionalHeaders), body)
 
   def fromEventStreamWithHeartbeat(
                                     status: Status = Status.Ok,

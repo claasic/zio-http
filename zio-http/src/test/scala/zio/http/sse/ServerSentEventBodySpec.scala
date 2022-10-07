@@ -1,6 +1,6 @@
-package zhttp.http.sse
+package zio.http.sse
 
-import zhttp.http.HTTP_CHARSET
+import zio.http.model.HTTP_CHARSET
 import zio.Scope
 import zio.stream.ZStream
 import zio.test.{Spec, TestEnvironment, ZIOSpecDefault, assertTrue}

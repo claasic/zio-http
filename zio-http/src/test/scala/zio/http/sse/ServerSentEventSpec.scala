@@ -1,6 +1,6 @@
-package zhttp.http.sse
+package zio.http.sse
 
-import zhttp.http.sse.ServerSentEvent.Event
+import zio.http.sse.ServerSentEvent.Event
 import zio.Scope
 import zio.test.{Spec, TestEnvironment, ZIOSpecDefault, assertTrue}
 
