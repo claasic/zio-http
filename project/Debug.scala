@@ -11,10 +11,10 @@ object Debug {
    *
    * Possible Values: DEBUG, ERROR, INFO, TRACE, WARN
    */
-  val ZHttpLogLevel = "INFO"
+  val ZIOHttpLogLevel = "INFO"
 
   /**
    * Sets the main application to execute in the example project.
    */
-  val Main = "example.WebSocketAdvanced"
+  val Main = "example.HelloWorld"
 }

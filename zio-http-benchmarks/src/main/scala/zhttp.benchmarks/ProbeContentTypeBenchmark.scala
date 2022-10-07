@@ -1,7 +1,7 @@
-package zhttp.benchmarks
+package zio.benchmarks
 
 import org.openjdk.jmh.annotations._
-import zhttp.http.MediaType
+import zio.http.model.MediaType
 
 import java.util.concurrent.TimeUnit
 import scala.util.Random

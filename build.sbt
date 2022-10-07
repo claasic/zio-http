@@ -5,7 +5,7 @@ import sbt.librarymanagement.ScalaArtifacts.isScala3
 val releaseDrafterVersion = "5"
 
 // Setting default log level to INFO
-val _ = sys.props += ("ZHttpLogLevel" -> Debug.ZHttpLogLevel)
+val _ = sys.props += ("ZIOHttpLogLevel" -> Debug.ZIOHttpLogLevel)
 
 // CI Configuration
 ThisBuild / githubWorkflowJavaVersions   := Seq(JavaSpec.graalvm("21.1.0", "11"), JavaSpec.temurin("8"))
@@ -29,7 +29,12 @@ ThisBuild / githubWorkflowAddedJobs      :=
       name = "Publish Documentation",
       steps = List(
         WorkflowStep.Use(UseRef.Public("actions", "checkout", s"v2")),
-        WorkflowStep.Use(UseRef.Public("actions", "setup-node", s"v2")),
+        WorkflowStep.Use(
+          UseRef.Public("actions", "setup-node", s"v3"),
+          Map(
+            "node-version" -> "16.15.1",
+          ),
+        ),
         WorkflowStep.Run(
           env = Map("GIT_PASS" -> "${{secrets.ACTIONS_PAT}}", "GIT_USER" -> "${{secrets.GIT_USER}}"),
           commands = List(
@@ -87,14 +92,14 @@ lazy val root = (project in file("."))
   .settings(stdSettings("root"))
   .settings(publishSetting(false))
   .aggregate(
-    zhttp,
-    zhttpBenchmarks,
-    zhttpLogging,
-    example,
+    zioHttp,
+    zioHttpBenchmarks,
+    zioHttpLogging,
+    zioHttpExample,
   )
 
-lazy val zhttp = (project in file("zio-http"))
-  .settings(stdSettings("zhttp"))
+lazy val zioHttp = (project in file("zio-http"))
+  .settings(stdSettings("zio-http"))
   .settings(publishSetting(true))
   .settings(meta)
   .settings(
@@ -102,6 +107,8 @@ lazy val zhttp = (project in file("zio-http"))
     libraryDependencies ++= netty ++ Seq(
       `zio`,
       `zio-streams`,
+      `zio-schema`,
+      `zio-schema-json`,
       `zio-test`,
       `zio-test-sbt`,
       `netty-incubator`,
@@ -113,18 +120,25 @@ lazy val zhttp = (project in file("zio-http"))
       }
     },
   )
-  .dependsOn(zhttpLogging)
+  .dependsOn(zioHttpLogging)
 
-lazy val zhttpBenchmarks = (project in file("zio-http-benchmarks"))
+lazy val zioHttpBenchmarks = (project in file("zio-http-benchmarks"))
   .enablePlugins(JmhPlugin)
-  .dependsOn(zhttp)
-  .settings(stdSettings("zhttpBenchmarks"))
+  .settings(stdSettings("zio-http-benchmarks"))
   .settings(publishSetting(false))
-  .settings(libraryDependencies ++= Seq(zio))
+  .settings(
+    libraryDependencies ++= Seq(
+//      "com.softwaremill.sttp.tapir" %% "tapir-akka-http-server" % "1.1.0",
+      "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % "1.1.1",
+      "com.softwaremill.sttp.tapir" %% "tapir-json-circe"    % "1.1.1",
+//      "dev.zio"                     %% "zio-interop-cats"    % "3.3.0",
+    ),
+  )
+  .dependsOn(zioHttp)
 
-lazy val zhttpLogging = (project in file("zio-http-logging"))
-  .settings(stdSettings("zhttp-logging"))
-  .settings(publishSetting(true))
+lazy val zioHttpLogging = (project in file("zio-http-logging"))
+  .settings(stdSettings("zio-http-logging"))
+  .settings(publishSetting(false))
   .settings(
     libraryDependencies ++= {
       if (isScala3(scalaVersion.value)) Seq.empty
@@ -133,12 +147,12 @@ lazy val zhttpLogging = (project in file("zio-http-logging"))
   )
   .settings(
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
-    libraryDependencies ++= Seq(`zio-test`, `zio-test-sbt`),
+    libraryDependencies ++= Seq(`zio`, `zio-test`, `zio-test-sbt`),
   )
 
-lazy val example = (project in file("./example"))
-  .settings(stdSettings("example"))
+lazy val zioHttpExample = (project in file("zio-http-example"))
+  .settings(stdSettings("zio-http-example"))
   .settings(publishSetting(false))
   .settings(runSettings(Debug.Main))
   .settings(libraryDependencies ++= Seq(`jwt-core`))
-  .dependsOn(zhttp)
+  .dependsOn(zioHttp)

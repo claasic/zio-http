@@ -6,8 +6,8 @@ sidebar_label: "Socket"
 Websocket support can be added to your Http application using the same `Http` domain, something like this —
 
 ```scala
-import zhttp.http._
-import zhttp.socket._
+import zio.http._
+import zio.socket._
 
 val socket = Http.collectZIO[WebSocketChannelEvent] {
   case ChannelEvent(ch, ChannelRead(WebSocketFrame.Text("foo"))) =>
@@ -75,7 +75,7 @@ The `Http` that accepts `WebSocketChannelEvent` isn't enough to create a websock
 that one might need to configure in a websocket connection, things such as `handshakeTimeout` or `subProtocol` etc. For
 those purposes a Http of the type `Http[R, E, WebSocketChannelEvent, Unit]` needs to converted into a `SocketApp` using
 the `toSocketApp` method first, before it can be sent as a response. Consider the following example where we set a few
-addtional properties for the websocket connection.
+additional properties for the websocket connection.
 
 ```scala
 socket
