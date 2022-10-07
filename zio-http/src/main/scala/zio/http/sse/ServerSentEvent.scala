@@ -6,6 +6,8 @@ sealed trait ServerSentEvent {
 
 object ServerSentEvent {
 
+  import Fields._
+
   private object Fields {
     val Field      = """([^:]+):? ?(.*)""".r
     val DataField  = "data"
@@ -15,16 +17,14 @@ object ServerSentEvent {
   }
 
   def parse(eventLines: List[String]): ServerSentEvent = {
-    import Fields._
-
     val result = eventLines.foldLeft(Event(None, None, None, None)) { (sse, line) =>
       line match {
-        case Field(Fields.DataField, data)   =>
+        case Field(DataField, data)   =>
           sse.copy(dataF = sse.dataF.map(s => s.concat(LF ++ data)).orElse(Some(data)))
-        case Field(Fields.IdField, id)       => sse.copy(idF = Some(id))
-        case Field(Fields.EventField, event) => sse.copy(eventF = Some(event))
-        case Field(Fields.RetryField, retry) => sse.copy(retryF = retry.toIntOption)
-        case _                               => sse
+        case Field(IdField, id)       => sse.copy(idF = Some(id))
+        case Field(EventField, event) => sse.copy(eventF = Some(event))
+        case Field(RetryField, retry) => sse.copy(retryF = retry.toIntOption)
+        case _                        => sse
       }
     }
     if (result.isEmpty) ServerSentEvent.empty else result
@@ -57,10 +57,10 @@ object ServerSentEvent {
      *   transport.
      */
     override def toStringRepresentation: String = {
-      val _data  = dataF.map(_.split(LF).map(line => s"${Fields.DataField}: $line").mkString(LF).concat(LF))
-      val _event = eventF.map(str => s"${Fields.EventField}: $str".concat(LF))
-      val _id    = idF.map(str => s"${Fields.IdField}: $str".concat(LF))
-      val _retry = retryF.map(str => s"${Fields.RetryField}: $str".concat(LF))
+      val _data  = dataF.map(_.split(LF).map(line => s"${DataField}: $line").mkString(LF).concat(LF))
+      val _event = eventF.map(str => s"${EventField}: $str".concat(LF))
+      val _id    = idF.map(str => s"${IdField}: $str".concat(LF))
+      val _retry = retryF.map(str => s"${RetryField}: $str".concat(LF))
 
       // As per specification each field and every event as a whole are each followed by an `end-of-line` character.
       Array[Option[String]](_data, _event, _id, _retry).flatten.mkString.concat(LF)
