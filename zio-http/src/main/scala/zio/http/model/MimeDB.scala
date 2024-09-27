@@ -7227,6 +7227,7 @@ private[zio] trait MimeDB {
     lazy val `rtploopback`: MediaType              =
       new MediaType("text", "rtploopback", Compressible, NotBinary)
     lazy val `rtx`: MediaType                      = new MediaType("text", "rtx", Compressible, NotBinary)
+    lazy val `server-sent-events`: MediaType       = new MediaType("text", "event-stream", Uncompressible, NotBinary)
     lazy val `sgml`: MediaType                     =
       new MediaType("text", "sgml", Compressible, NotBinary, List("sgml", "sgm"))
     lazy val `shaclc`: MediaType                   = new MediaType("text", "shaclc", Compressible, NotBinary)
@@ -7425,6 +7426,7 @@ private[zio] trait MimeDB {
       `rtp-enc-aescm128`,
       `rtploopback`,
       `rtx`,
+      `server-sent-events`,
       `sgml`,
       `shaclc`,
       `shex`,
